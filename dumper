@@ -1,63 +1,92 @@
 #!/bin/bash
-####################################################################
-# Script bash para gerar um dump de um banco passado por parametro #
-####################################################################
 
-#servidor a ser conectado
-servidor="1vm.terra.com.br";
-#nome da base de dados
-banco="$1";
+#######################################################################
+# Bash script that make mysql dump files comes from a database server #
+# to a development enviroment                                         #
+#                                                                     #
+# This script is a model that you setup it defining the variables in  #
+# the begining of the file.                                           #
+#                                                                     #
+# You can put this script at /usr/bin/ and set execution bit to the   #
+# file                                                                #
+#                                                                     #
+# Author : Gustavo Pantuza                                            #
+# Since  : 07.02.2012                                                 #
+#######################################################################
+
+
+# == VARIABLES DEFINITIONS == #
+
+# server dns or ip to connect over ssh
+server=""; # ex: my_db_server.com
+
+# ssh user that have permission to execute mysqldump program on the server
+ssh_user=""; # ex: dennis
+
+# database user
+db_user="" # ex: dba
+
+# database password
+db_pass=""; # ex: dba_passwd
+
+# receives the database/table name from command arguments
+database="$1"; 
 tabela="$2"; 
 
-# gera um backup do último dump gerado
-function backup (){
 
+# == FUNCTIONS AREA == #
+
+# make a backup of the last dump created inside the user home 
+# directory. ex : /home/user_home_dir/dumps/
+function backup ()
+{
+    # if dumps dir doesn't exists, creates
 	if [ ! -e $HOME/dumps ]; then
 		mkdir $HOME/dumps;
 	fi;
 
 	dumpdir=$HOME/dumps;
 
+    # if exist a dump file, back it up
 	if [ -f $dumpdir/dump ];then
 		mv $dumpdir/dump $dumpdir/dump_;
 	fi;
 }
 
 
-# executa o mysqldump no servidor e copia o arquivo para o diretório corrente
-function cpdump (){
-	ssh studiosol@$servidor "mysqldump -ueth1 -predeinterna $banco $tabela > dump; tar czf - dump" | tar xzf - -C $HOME/dumps/;
+# run the mysql dump on the server, archive the dump file (tar), then
+# copies the file to the dump directory and unarchive it
+function cpdump ()
+{
+	ssh $ssh_user@$server "mysqldump -u$db_user -p$db_pass $database $tabela > dump; tar czf - /tmp/dump" | tar xzf - -C $HOME/dumps/;
 }
 
-# efetua a importacao do arquivo de dump
-function impdump (){
-	# caso bash executado dentro do prime
-	if [ "$HOSTNAME" == prime ]; then
-		# nao faz ssh
-		mysql -ueth1 -predeinterna $banco < $HOME/dumps/dump
-	else
-		echo -e "Digite o usuário no prime:";
-		read user;
-		#Atualiza o banco de dados com o dump gerado atraves do ssh
-		ssh $user@prime "mysql -ueth1 -predeinterna $banco" < $HOME/dumps/dump
-	fi;
+
+# Imports the dump file to the database on the development enviroment
+function impdump ()
+{
+	mysql -u$db_user -p$db_pass $database < $HOME/dumps/dump
 }
 
-# - MAIN FUNCTION -
-function main(){
-	backup;
-	echo -e "------------------------------------------------\nGerando arquivo de Dump do banco '$banco':";
+
+# Main function that controls the script execution flow
+function main()
+{
+    echo -e "making dump file backup..."
+    backup;
+	echo -e "OK";
+    echo -e "making dump on server..."
 	cpdump;
-	echo -e "dump gerado\n--";
-	echo -e "Atualizando o banco '$banco' no PRIME";
-	impdump;
-	echo -e "Banco Atualizado, bom trabalho o/";
-	echo -e "--------------------------------";
+    echo -e "Ok";
+	echo -e "updating the database..."
+    impdump;
+    echo -e "OK";
+	echo -e "--\n\nDatabase updated successfully! Good work o/ \n";
 	exit 0;
 }	
 
-# chama a execucao do script
+##                           ###
+#### Run the main function :)  #
+##                          ####
 main;
-
-
 
