@@ -1,0 +1,63 @@
+#!/bin/bash
+####################################################################
+# Script bash para gerar um dump de um banco passado por parametro #
+####################################################################
+
+#servidor a ser conectado
+servidor="1vm.terra.com.br";
+#nome da base de dados
+banco="$1";
+tabela="$2"; 
+
+# gera um backup do último dump gerado
+function backup (){
+
+	if [ ! -e $HOME/dumps ]; then
+		mkdir $HOME/dumps;
+	fi;
+
+	dumpdir=$HOME/dumps;
+
+	if [ -f $dumpdir/dump ];then
+		mv $dumpdir/dump $dumpdir/dump_;
+	fi;
+}
+
+
+# executa o mysqldump no servidor e copia o arquivo para o diretório corrente
+function cpdump (){
+	ssh studiosol@$servidor "mysqldump -ueth1 -predeinterna $banco $tabela > dump; tar czf - dump" | tar xzf - -C $HOME/dumps/;
+}
+
+# efetua a importacao do arquivo de dump
+function impdump (){
+	# caso bash executado dentro do prime
+	if [ "$HOSTNAME" == prime ]; then
+		# nao faz ssh
+		mysql -ueth1 -predeinterna $banco < $HOME/dumps/dump
+	else
+		echo -e "Digite o usuário no prime:";
+		read user;
+		#Atualiza o banco de dados com o dump gerado atraves do ssh
+		ssh $user@prime "mysql -ueth1 -predeinterna $banco" < $HOME/dumps/dump
+	fi;
+}
+
+# - MAIN FUNCTION -
+function main(){
+	backup;
+	echo -e "------------------------------------------------\nGerando arquivo de Dump do banco '$banco':";
+	cpdump;
+	echo -e "dump gerado\n--";
+	echo -e "Atualizando o banco '$banco' no PRIME";
+	impdump;
+	echo -e "Banco Atualizado, bom trabalho o/";
+	echo -e "--------------------------------";
+	exit 0;
+}	
+
+# chama a execucao do script
+main;
+
+
+
