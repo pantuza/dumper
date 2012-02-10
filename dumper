@@ -31,7 +31,7 @@ db_pass=""; # ex: dba_passwd
 
 # receives the database/table name from command arguments
 database="$1"; 
-tabela="$2"; 
+table="$2";
 
 
 # == FUNCTIONS AREA == #
