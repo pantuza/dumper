@@ -58,7 +58,7 @@ function backup ()
 # copies the file to the dump directory and unarchive it
 function cpdump ()
 {
-	ssh $ssh_user@$server "mysqldump -u$db_user -p$db_pass $database $tabela > dump; tar czf - /tmp/dump" | tar xzf - -C $HOME/dumps/;
+	ssh $ssh_user@$server "mysqldump -u$db_user -p$db_pass $database $tabela > /tmp/dump;cd /tmp; tar czf - dump" | tar xzf - -C $HOME/dumps/;
 }
 
 
@@ -81,7 +81,7 @@ function main()
 	echo -e "updating the database..."
     impdump;
     echo -e "OK";
-	echo -e "--\n\nDatabase updated successfully! Good work o/ \n";
+	echo -e "\n\n--Database updated successfully! Good work o/ \n";
 	exit 0;
 }	
 
