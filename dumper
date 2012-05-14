@@ -18,16 +18,16 @@
 # == VARIABLES DEFINITIONS == #
 
 # server dns or ip to connect over ssh
-server=""; # ex: my_db_server.com
+server="1ad.terra.com.br"; # ex: my_db_server.com
 
 # ssh user that have permission to execute mysqldump program on the server
-ssh_user=""; # ex: dennis
+ssh_user="root"; # ex: dennis
 
 # database user
-db_user="" # ex: dba
+db_user="eth1" # ex: dba
 
 # database password
-db_pass=""; # ex: dba_passwd
+db_pass="redeinterna"; # ex: dba_passwd
 
 # receives the database/table name from command arguments
 database="$1"; 
@@ -58,7 +58,14 @@ function backup ()
 # copies the file to the dump directory and unarchive it
 function cpdump ()
 {
-	ssh $ssh_user@$server "mysqldump -u$db_user -p$db_pass $database $tabela > /tmp/dump;cd /tmp; tar czf - dump" | tar xzf - -C $HOME/dumps/;
+    if [ "$table" == "" ]; then
+        tables_opt="";
+    else
+        tables_opt="--tables";
+    fi;
+    ssh $ssh_user@$server "mysqldump -u$db_user -p$db_pass $database \
+        $tables_opt $table > /tmp/dump;cd /tmp; tar czf - dump" \
+        | tar xzf - -C $HOME/dumps/;
 }
 
 
@@ -72,6 +79,7 @@ function impdump ()
 # Main function that controls the script execution flow
 function main()
 {
+
     echo -e "making dump file backup..."
     backup;
 	echo -e "OK";
