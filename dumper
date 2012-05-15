@@ -18,16 +18,16 @@
 # == VARIABLES DEFINITIONS == #
 
 # server dns or ip to connect over ssh
-server="1ad.terra.com.br"; # ex: my_db_server.com
+server=""; # ex: my_db_server.com
 
 # ssh user that have permission to execute mysqldump program on the server
-ssh_user="root"; # ex: dennis
+ssh_user=""; # ex: dennis
 
 # database user
-db_user="eth1" # ex: dba
+db_user="" # ex: dba
 
 # database password
-db_pass="redeinterna"; # ex: dba_passwd
+db_pass=""; # ex: dba_passwd
 
 # receives the database/table name from command arguments
 database="$1"; 
