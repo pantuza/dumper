@@ -89,12 +89,10 @@ function main()
 	echo -e "updating the database..."
     impdump;
     echo -e "OK";
-	echo -e "\n\n--Database updated successfully! Good work o/ \n";
+	echo -e "\n\n--\nDatabase updated successfully! Good work o/ \n";
 	exit 0;
 }	
 
-##                           ###
-#### Run the main function :)  #
-##                          ####
+# Run the main function :)
 main;
 
