@@ -14,7 +14,7 @@
 # Since  : 07.02.2012                                                 #
 #######################################################################
 
-
+version="1.0";
 # == VARIABLES DEFINITIONS == #
 
 # server dns or ip to connect over ssh
@@ -30,8 +30,8 @@ db_user="" # ex: dba
 db_pass=""; # ex: dba_passwd
 
 # receives the database/table name from command arguments
-database="$1"; 
-table="$2";
+database=""; 
+tables="";
 
 
 # == FUNCTIONS AREA == #
@@ -58,13 +58,13 @@ function backup ()
 # copies the file to the dump directory and unarchive it
 function cpdump ()
 {
-    if [ "$table" == "" ]; then
+    if [ "$tables" == "" ]; then
         tables_opt="";
     else
         tables_opt="--tables";
     fi;
     ssh $ssh_user@$server "mysqldump -u$db_user -p$db_pass $database \
-        $tables_opt $table > /tmp/dump;cd /tmp; tar czf - dump" \
+        $tables_opt $tables > /tmp/dump;cd /tmp; tar czf - dump" \
         | tar xzf - -C $HOME/dumps/;
 }
 
@@ -75,11 +75,87 @@ function impdump ()
 	mysql -u$db_user -p$db_pass $database < $HOME/dumps/dump
 }
 
+# prints the help message
+function usage ()
+{
+    echo -e "\nUsage: $1 database_name [table_name1 [,table_name2, ...] ]\n";
+}
+
+# version information
+function version ()
+{
+    echo -e "$1 - $version";
+}
+# help function
+function help ()
+{
+    usage $1;
+    version $1;
+    echo -e "
+    Dump databases and tables on a server and import it 
+    backup file to the local database
+
+    Options
+    \t-v, --version
+    \t\tPrints the script version
+    \t-h, --help
+    \t\tPrints this help message
+
+    Written By
+    \tGustavo Pantuza
+    Report Bugs To
+    \tgustavopantuza@gmail.com
+    ";
+}
+
+# parses database and tables
+function parsedata()
+{
+    if test -n "$database"; then
+        tables="${tables}${1/ /}";
+    else
+        database="$1";
+    fi;
+}
+
+# parses the dumper arguments
+function parseargs ()
+{
+    # tests if the length of the string is nonzero
+    if test -n "$2"; then
+        case "$2" in
+            -h|--help)
+                help $1;
+                exit
+                ;;
+            -v|--version)
+                version $1;
+                exit;
+                ;;
+            -*|--*)
+                echo -e "Error: ";
+                help $1;
+                exit
+                ;;
+            *)
+                while test -n "$2";do
+                    parsedata $2;
+                    shift
+               done
+               ;;
+        esac
+    else
+        usage $1;
+        exit 1
+    fi;
+    echo -e "database: $database \ntables: $tables";
+    exit 2;
+}
 
 # Main function that controls the script execution flow
 function main()
 {
-
+    parseargs $0 $@;
     echo -e "making dump file backup..."
     backup;
 	echo -e "OK";
@@ -94,5 +170,5 @@ function main()
 }	
 
 # Run the main function :)
-main;
+main $@
 
