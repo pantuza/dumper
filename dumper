@@ -38,15 +38,15 @@ db_pass=""; # ex: dba_passwd
 function backup ()
 {
     # if dumps dir doesn't exists, creates
-	if [ ! -e $HOME/dumps ]; then
-		mkdir $HOME/dumps;
+	if [ ! -e "$HOME/dumps" ]; then
+		mkdir "$HOME/dumps";
 	fi;
 
-	dumpdir=$HOME/dumps;
+	dumpdir="$HOME/dumps";
 
     # if exist a dump file, back it up
-	if [ -f $dumpdir/dump ];then
-		mv $dumpdir/dump $dumpdir/dump_;
+	if [ -f "$dumpdir/dump" ];then
+		mv "$dumpdir/dump" "$dumpdir/dump_";
 	fi;
 }
 
@@ -55,21 +55,21 @@ function backup ()
 # copies the file to the dump directory and unarchive it
 function cpdump ()
 {
-    if [ "$tables" == "" ]; then
-        tables_opt="";
-    else
+    if [ -z $tables ]; then
         tables_opt="--tables";
+    else
+        tables_opt="";
     fi;
     ssh $ssh_user@$server "mysqldump -u$db_user -p$db_pass $database \
         $tables_opt $tables > /tmp/dump;cd /tmp; tar czf - dump" \
-        | tar xzf - -C $HOME/dumps/;
+        | tar xzf - -C "$HOME/dumps/";
 }
 
 
 # Imports the dump file to the database on the development enviroment
 function impdump ()
 {
-	mysql -u$db_user -p$db_pass $database < $HOME/dumps/dump
+	mysql -u$db_user -p$db_pass $database < "$HOME/dumps/dump"
 }
 
 # prints the Usage message
@@ -158,7 +158,7 @@ function parseargs ()
 # Canceling script function
 function dumper_cancel()
 {
-    echo -e "\n\e[0;31mDumper script aborted!\e[0m\n" 2>1
+    echo -e "\n\e[0;31mDumper script aborted!\e[0m\n" 
     exit 1;
 }
 
@@ -190,7 +190,7 @@ function main()
     echo -e "\n\n--\nDatabase updated successfully!" \
             " \e[1;32mGood work o/ \e[0m\n";
     exit 0;
-}	
+}
 
 # == GLOBAL VARIABLES == #
 
