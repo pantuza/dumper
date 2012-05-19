@@ -53,7 +53,3 @@ $> dumper dev_db dev_tb
 
 > ###### Report dumper bugs to gustavopantuza@gmail.com
 
---
- O/
-/||
- /\
