@@ -5,7 +5,7 @@
 # to a development enviroment                                         #
 #                                                                     #
 # This script is a model that you setup it defining the variables in  #
-# the begining of the file.                                           #
+# the begining of this file.                                          #
 #                                                                     #
 # You can put this script at /usr/bin/ and set execution bit to the   #
 # file                                                                #
@@ -14,8 +14,8 @@
 # Since  : 07.02.2012                                                 #
 #######################################################################
 
-version="1.0";
 # == VARIABLES DEFINITIONS == #
+
 
 # server dns or ip to connect over ssh
 server=""; # ex: my_db_server.com
@@ -29,9 +29,6 @@ db_user="" # ex: dba
 # database password
 db_pass=""; # ex: dba_passwd
 
-# receives the database/table name from command arguments
-database=""; 
-tables="";
 
 
 # == FUNCTIONS AREA == #
@@ -75,37 +72,41 @@ function impdump ()
 	mysql -u$db_user -p$db_pass $database < $HOME/dumps/dump
 }
 
-# prints the help message
+# prints the Usage message
 function usage ()
 {
-    echo -e "\nUsage: $1 database_name [table_name1 [,table_name2, ...] ]\n";
+    echo -e "\n\e[0;33mUsage: $script_name database_name " \
+            "[table_name1 [,table_name2, ...] ]\e[0m\n";
 }
 
 # version information
 function version ()
 {
-    echo -e "$1 - $version";
+    echo -e "\e[0;34m${script_name^^} - $version\e[0m";
 }
 # help function
 function help ()
 {
-    usage $1;
-    version $1;
-    echo -e "
-    Dump databases and tables on a server and import it 
+    usage $script_name;
+    version $script_name;
+    echo -e "\e[0;33m
+    Dump databases and tables from a server and import its 
     backup file to the local database
 
-    Options
+    \e[0;34mOptions\e[0;33m
     \t-v, --version
     \t\tPrints the script version
     \t-h, --help
     \t\tPrints this help message
 
-    Written By
+    \e[0;34mExample\e[0;33m
+    \tdumper mydatabase mytable1,mytable2
+
+    \e[0;34mWritten By\e[0;33m
     \tGustavo Pantuza
-    Report Bugs To
+    \e[0;34mReport Bugs To\e[0;33m
     \tgustavopantuza@gmail.com
-    ";
+    \e[0m";
 }
 
 # parses database and tables
@@ -121,53 +122,92 @@ function parsedata()
 # parses the dumper arguments
 function parseargs ()
 {
+    script_name=$0;
+    
     # tests if the length of the string is nonzero
-    if test -n "$2"; then
-        case "$2" in
+    if test -n "$1"; then
+
+        # call functions depending of the argv
+        case "$1" in
             -h|--help)
-                help $1;
+                help $script_name;
                 exit
                 ;;
             -v|--version)
-                version $1;
+                version $script_name;
                 exit;
                 ;;
             -*|--*)
-                echo -e "Error: ";
-                help $1;
+                echo -e "\n\e[0;31mError: bad arguments\e[0m\n--";
+                usage $script_name;
                 exit
                 ;;
             *)
-                while test -n "$2";do
-                    parsedata $2;
+                while test -n "$1";do
+                    parsedata $1;
                     shift
                done
                ;;
         esac
     else
-        usage $1;
-        exit 1
+        usage $script_name;
+        exit 2
     fi;
-    echo -e "database: $database \ntables: $tables";
-    exit 2;
+}
+
+# Canceling script function
+function dumper_cancel()
+{
+    echo -e "\n\e[0;31mDumper script aborted!\e[0m\n" 2>1
+    exit 1;
+}
+
+# Verify the necessary variable to the script execution
+function verify_confs()
+{
+    if [ -z $server ] && [ -z $ssh_user ] \
+        && [ -z $db_user ] && [ -z $db_pass ]; then
+
+        echo -e "\nBad file configuration. Missing setup variables";
+        dumper_cancel;
+    fi;
 }
 
 # Main function that controls the script execution flow
 function main()
 {
-    parseargs $0 $@;
+    parseargs $@;
+    verify_confs;
     echo -e "making dump file backup..."
     backup;
 	echo -e "OK";
-    echo -e "making dump on server..."
+    echo -e "making dump on $server..."
 	cpdump;
     echo -e "Ok";
-	echo -e "updating the database..."
+	echo -e "updating $database database..."
     impdump;
     echo -e "OK";
-	echo -e "\n\n--\nDatabase updated successfully! Good work o/ \n";
-	exit 0;
+    echo -e "\n\n--\nDatabase updated successfully!" \
+            " \e[1;32mGood work o/ \e[0m\n";
+    exit 0;
 }	
+
+# == GLOBAL VARIABLES == #
+
+# Error handling
+TRAP_SIGNALS="QUIT KILL STOP";
+trap 'dumper_cancel' $TRAP_SIGNALS;
+
+# Dumper script version
+version="1.0";
+
+# receives the database/table name from the 
+# command arguments inside the main function
+database="";
+tables="";
+
+# Receives the script name from $0 variable
+script_name="";
 
 # Run the main function :)
 main $@
