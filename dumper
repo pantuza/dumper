@@ -75,38 +75,52 @@ function impdump ()
 # prints the Usage message
 function usage ()
 {
-    echo -e "\n\e[0;33mUsage: $script_name database_name " \
-            "[table_name1 [,table_name2, ...] ]\e[0m\n";
+    echo -e "\n$BLUE Usage:$BROWN $script_name database_name " \
+            "[table_name1 [,table_name2, ...] ]$END_COLOR\n";
 }
 
 # version information
 function version ()
 {
-    echo -e "\e[0;34m${script_name^^} - $version\e[0m";
+    echo -e "$BLUE ${script_name^^} - $version$END_COLOR";
 }
 # help function
 function help ()
 {
     usage $script_name;
     version $script_name;
-    echo -e "\e[0;33m
+    echo -e "$GRAY
     Dump databases and tables from a server and import its 
     backup file to the local database
-
-    \e[0;34mOptions\e[0;33m
+    $BLUE
+    Options $GRAY
     \t-v, --version
     \t\tPrints the script version
     \t-h, --help
     \t\tPrints this help message
-
-    \e[0;34mExample\e[0;33m
+    \t--server
+    \t\tDatabase server id or domain name. Ex: my_db_server.com
+    \t--ssh-user
+    \t\tUser name to connect on server through ssh
+    \t--db-user
+    \t\tDatabase user name
+    \t--db-pass
+    \t\tDatabase password 
+    $BLUE
+    Example $GRAY
+    \tdumper mydatabase
     \tdumper mydatabase mytable1,mytable2
-
-    \e[0;34mWritten By\e[0;33m
-    \tGustavo Pantuza
-    \e[0;34mReport Bugs To\e[0;33m
+    $BLUE
+    Note $GRAY
+    \t--server, --ssh-user, --db-user and --db-pass are optional arguments 
+    \tthat you may put it on the variables at the head of this script file.
+    \tDoing that, is not necessary to pass it through command line
+    $BLUE
+    Written By $GRAY
+    \tGustavo Pantuza $BLUE
+    Report Bugs To $GRAY
     \tgustavopantuza@gmail.com
-    \e[0m";
+    $END_COLOR";
 }
 
 # parses database and tables
@@ -164,7 +178,7 @@ function parseargs ()
                 shift;
                 ;;
             -*|--*)
-                echo -e "\n\e[0;31mError: bad arguments\e[0m\n--";
+                echo -e "\n$RED Error: bad arguments$END_COLOR";
                 usage $script_name;
                 exit
                 ;;
@@ -179,7 +193,7 @@ function parseargs ()
 # Canceling script function
 function dumper_cancel()
 {
-    echo -e "\n\e[0;31mDumper script aborted!\e[0m\n" 
+    echo -e "\n$RED Dumper script aborted!$END_COLOR\n" 
     exit 1;
 }
 
@@ -189,7 +203,8 @@ function verify_confs()
     if [ -z $server ] && [ -z $ssh_user ] \
         && [ -z $db_user ] && [ -z $db_pass ]; then
 
-        echo -e "\nBad file configuration. Missing setup variables";
+        echo -e "\nBad file configuration! Missing setup variables";
+        echo -e "Try $script_name --help";
         dumper_cancel;
     fi;
 }
@@ -209,7 +224,7 @@ function main()
     impdump;
     echo -e "OK";
     echo -e "\n\n--\nDatabase updated successfully!" \
-            " \e[1;32mGood work o/ \e[0m\n";
+            " $GREEN Good work o/ $END_COLOR\n";
     exit 0;
 }
 
