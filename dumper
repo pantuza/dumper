@@ -52,7 +52,7 @@ function backup ()
 
 
 # run the mysql dump on the server, archive the dump file (tar), then
-# copies the file to the dump directory and unarchive it
+# copies the file to the home dump directory and unarchive it
 function cpdump ()
 {
     if [ -z $tables ]; then
@@ -123,9 +123,15 @@ function parsedata()
 function parseargs ()
 {
     script_name=$0;
-    
+   
+    # print script usage when arguments are not passed
+    if test ! -n "$1"; then
+        usage $script_name;
+        exit;
+    fi;
+
     # tests if the length of the string is nonzero
-    if test -n "$1"; then
+    while test -n "$1"; do
 
         # call functions depending of the argv
         case "$1" in
@@ -137,22 +143,37 @@ function parseargs ()
                 version $script_name;
                 exit;
                 ;;
+            --server)
+                shift;
+                server="$1";
+                shift;
+                ;;
+            --ssh-user)
+                shift;
+                ssh_user="$1";
+                shift;
+                ;;
+            --db-user)
+                shift;
+                db_user="$1";
+                shift;
+                ;;
+            --db-pass)
+                shift;
+                db_pass="$1";
+                shift;
+                ;;
             -*|--*)
                 echo -e "\n\e[0;31mError: bad arguments\e[0m\n--";
                 usage $script_name;
                 exit
                 ;;
             *)
-                while test -n "$1";do
-                    parsedata $1;
-                    shift
-               done
-               ;;
-        esac
-    else
-        usage $script_name;
-        exit 2
-    fi;
+                parsedata $1;
+                shift
+                ;;
+        esac;        
+    done;
 }
 
 # Canceling script function
@@ -208,6 +229,14 @@ tables="";
 
 # Receives the script name from $0 variable
 script_name="";
+
+# Messaging Colors
+GRAY="\e[1;30m";
+RED="\e[0;31m";
+GREEN="\e[0;32m";
+BROWN="\e[0;33m";
+BLUE="\e[1;34m";
+END_COLOR="\e[0m";
 
 # Run the main function :)
 main $@
