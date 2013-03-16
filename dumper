@@ -160,22 +160,18 @@ function parseargs ()
             --server)
                 shift;
                 server="$1";
-                shift;
                 ;;
             --ssh-user)
                 shift;
                 ssh_user="$1";
-                shift;
                 ;;
             --db-user)
                 shift;
                 db_user="$1";
-                shift;
                 ;;
             --db-pass)
                 shift;
                 db_pass="$1";
-                shift;
                 ;;
             -*|--*)
                 echo -e "\n$RED Error: bad arguments$END_COLOR";
@@ -184,9 +180,10 @@ function parseargs ()
                 ;;
             *)
                 parsedata $1;
-                shift
                 ;;
-        esac;        
+        esac;
+
+        shift;
     done;
 }
 
